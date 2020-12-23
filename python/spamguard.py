@@ -2,12 +2,6 @@ import os, re
 from datetime import datetime
 from mailsuite.imap import IMAPClient
 
-# Env vars needed
-imap_host = os.getenv('IMAP_HOST', '')
-imap_port = os.getenv('IMAP_PORT', '993')
-username = os.getenv('AUTH_USERNAME', '')
-password = os.getenv('AUTH_PASSWORD', '')
-
 # get current timestamp for prints
 def current_time():
     return datetime.now().strftime("%Y/%m/%d %H:%M:%S")
@@ -49,6 +43,12 @@ def callback(obj: IMAPClient):
         obj.delete_messages(spam_uids)
 
 if __name__ == "__main__":
+    # Env vars needed
+    imap_host = os.getenv('IMAP_HOST', '')
+    imap_port = os.getenv('IMAP_PORT', '993')
+    username = os.getenv('AUTH_USERNAME', '')
+    password = os.getenv('AUTH_PASSWORD', '')
+
     if imap_host and username and password:
         print(f'[{current_time()}] Starting IMAP client in idle mode...')
         IMAPClient(host=imap_host, username=username, password=password, port=int(imap_port), idle_callback=callback)
