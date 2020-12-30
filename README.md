@@ -1,6 +1,6 @@
 # SpamGuard
 
-Microsoft's spam filter became uselsss about a yaer ago. Their email rules aren't powerful enough to make the spam stop. So  here I am.
+Microsoft's spam filter became uselsss about a year ago. Their email rules aren't powerful enough to make the spam stop. So  here I am.
 
 Uses [mailsuite](https://github.com/cbackas/mailsuite) (well my fork with a couple fixes) which handles the imap/idle heavy lifting
 
