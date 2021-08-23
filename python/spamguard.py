@@ -14,14 +14,37 @@ def check_for_spam(text_html):
     if 'lucky online winner' in text_html.lower():
         return True
 
-    # CONSTANTLY get emails with this HTML format
-    evil_html_pattern = r'<metahttp-equiv="Content-Type"content="text\/html;charset=utf-8">\\r\\n(<divstyle="text-align:center;">\\r\\n<tablealign="center">|<divdir="ltr">\\r\\n<center>\\r\\n<table>)\\r\\n<tr>\\r\\n<td>\\r\\n<ahref=".+">\\r\\n\\t\\t<imgsrc=".+">\\r\\n\\t<\/a>\\r\\n<\/td>\\r\\n<\/tr>\\r\\n<tr>\\r\\n<tdstyle="padding-top:200px;">\\r\\n<ahref=".+">\\r\\n\\t\\t<imgsrc=".+">\\r\\n\\t<\/a>\\r\\n<\/td>'
+    # strip spaces from html text
     text_html = ''.join(text_html.split())
-    match = re.findall(evil_html_pattern, text_html)
+
+    # html regex patterns
+    # was going to store these in externally configurable json but figured I need to open dev environment to create these patterns anyway so might as well keep them here
+    # --- 
+    # Need to add a new pattern but forgot how you did it in the first place!?
+    # Step 1. Obv you've got dev environment for this project open
+    # Step 2. Disable the auto deletion part within func callback
+    # Step 3. Add a print() of text_html right around here
+    # Step 4. Take the output of the text_html for the offending email over to regex tester and get things matching
+    # Step 5. Make things are escaped right!
+    # Step 6. Add another pattern entry below and DONT FORGET TO ADD NEW PATTERN TO PATTERNS LIST
+    pattern_1 = r'<metahttp-equiv="Content-Type"content="text\/html;charset=utf-8">\\r\\n(<divstyle="text-align:center;">\\r\\n<tablealign="center">'
+    pattern_2 = r'<divdir="ltr">\\r\\n<center>\\r\\n<table>)\\r\\n<tr>\\r\\n<td>\\r\\n<ahref=".+">\\r\\n\\t\\t<imgsrc=".+">\\r\\n\\t<\/a>\\r\\n<\/td>\\r\\n<\/tr>\\r\\n<tr>\\r\\n<tdstyle="padding-top:200px;">\\r\\n<ahref=".+">\\r\\n\\t\\t<imgsrc=".+">\\r\\n\\t<\/a>\\r\\n<\/td>'
+    pattern_3 = r'<divstyle=\"text-align:center\">\\r\\n<ahref=\".+\"><imgsrc=\".+\"/></a>\\r\\n<divstyle=\"padding-top:200px;\"><ahref=\".+\"><imgsrc=\".+\"/></a></div>'
+    pattern_4 = r'<html><head>\\r\\n<metahttp-equiv=\"Content-Type\"content=\"text/html;charset=iso-8859-1\">\\r\\n<styletype=\"text/css\"style=\"display:none;\">P{margin-top:0;margin-bottom:0;}</style>\\r\\n</head>\\r\\n<bodydir=\"ltr\">\\r\\n<center>\\r\\n<ahref=\".+\">\\r\\n<imgsrc=\".+\">\\r\\n</a>\\r\\n<divstyle=\"padding-top:200px;\">\\r\\n\\t<ahref=\".+\">\\r\\n\\t\\t<imgsrc=\".+\">\\r\\n\\t</a>\\r\\n</div>'
+    pattern_5 = r'<center>\\r\\n<div>\\r\\n<ahref=\".+\"><imgsrc=\".+\"/></a>\\r\\n<br/><br/>\\r\\n<ahref=\".+\"><imgsrc=\".+\"/></a>\\r\\n</div>'
+    pattern_6 = r'<divstyle="text-align:center">\\r\\n<ahref=\".+\">.+<imgsrc=\".+\"/></a>\\r\\n\\r\\n<divstyle="padding-top:200px;"><ahref=\".+\"><imgsrc=\".+\"/></a></div>'
+
+    # combine the patterns to go into 1 regex search
+    patterns = [pattern_1, pattern_2, pattern_3, pattern_4, pattern_5, pattern_6]
+    combined_regex = "(" + ")|(".join(patterns) + ")"
+
+    # return true if any of the patterns match
+    match = re.findall(combined_regex, text_html)
     if len(match) > 0:
         return True
-
+    
     return False
+
 
 # function thats called when IDLE tells us a email was recieved
 def callback(obj: IMAPClient):
@@ -41,6 +64,7 @@ def callback(obj: IMAPClient):
     if len(spam_uids) > 0:
         print(f'[{current_time()}] Deleting Spam: {spam_uids}')
         obj.delete_messages(spam_uids)
+
 
 if __name__ == "__main__":
     # Env vars needed
