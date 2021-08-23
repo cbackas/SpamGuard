@@ -1,6 +1,13 @@
 import os, re
 from datetime import datetime
 from mailsuite.imap import IMAPClient
+from dotenv import load_dotenv
+
+# switch dev mode from False to True to:
+# read env vars from env file
+# disable email deletion
+# enable printing html of unmatched emails
+dev_mode = False
 
 # get current timestamp for prints
 def current_time():
@@ -21,16 +28,15 @@ def check_for_spam(text_html):
     # was going to store these in externally configurable json but figured I need to open dev environment to create these patterns anyway so might as well keep them here
     # --- 
     # Need to add a new pattern but forgot how you did it in the first place!?
-    # Step 1. Obv you've got dev environment for this project open
-    # Step 2. Disable the auto deletion part within func callback
-    # Step 3. Add a print() of text_html right around here
-    # Step 4. Take the output of the text_html for the offending email over to regex tester and get things matching
-    # Step 5. Make things are escaped right!
-    # Step 6. Add another pattern entry below and DONT FORGET TO ADD NEW PATTERN TO PATTERNS LIST
+    # Step 1. Set dev_mode to True
+    # Step 2. Take the output of the text_html for the offending email over to regex tester and get things matching
+    # Step 3. Make things are escaped right!
+    # Step 4. Add another pattern entry below and DONT FORGET TO ADD NEW PATTERN TO PATTERNS LIST
+    # Step 5. Set dev_mode to False and PUSH
     pattern_1 = r'<metahttp-equiv="Content-Type"content="text\/html;charset=utf-8">\\r\\n(<divstyle="text-align:center;">\\r\\n<tablealign="center">'
     pattern_2 = r'<divdir="ltr">\\r\\n<center>\\r\\n<table>)\\r\\n<tr>\\r\\n<td>\\r\\n<ahref=".+">\\r\\n\\t\\t<imgsrc=".+">\\r\\n\\t<\/a>\\r\\n<\/td>\\r\\n<\/tr>\\r\\n<tr>\\r\\n<tdstyle="padding-top:200px;">\\r\\n<ahref=".+">\\r\\n\\t\\t<imgsrc=".+">\\r\\n\\t<\/a>\\r\\n<\/td>'
     pattern_3 = r'<divstyle=\"text-align:center\">\\r\\n<ahref=\".+\"><imgsrc=\".+\"/></a>\\r\\n<divstyle=\"padding-top:200px;\"><ahref=\".+\"><imgsrc=\".+\"/></a></div>'
-    pattern_4 = r'<html><head>\\r\\n<metahttp-equiv=\"Content-Type\"content=\"text/html;charset=iso-8859-1\">\\r\\n<styletype=\"text/css\"style=\"display:none;\">P{margin-top:0;margin-bottom:0;}</style>\\r\\n</head>\\r\\n<bodydir=\"ltr\">\\r\\n<center>\\r\\n<ahref=\".+\">\\r\\n<imgsrc=\".+\">\\r\\n</a>\\r\\n<divstyle=\"padding-top:200px;\">\\r\\n\\t<ahref=\".+\">\\r\\n\\t\\t<imgsrc=\".+\">\\r\\n\\t</a>\\r\\n</div>'
+    pattern_4 = r'<html><head>\\r\\n<metahttp-equiv=\"Content-Type\"content=\"text/html;charset=iso-8859-1\">\\r\\n<styletype=\"text/css\"style=\"display:none;\">P{margin-top:0;margin-bottom:0;}</style>\\r\\n</head>\\r\\n<bodydir=\"ltr\">\\r\\n<center>\\r\\n<ahref=\".+\">\\r\\n<imgsrc=\".+\">\\r\\n</a>\\r\\n<divstyle=\"padding-top:200px;\">\\r\\n'
     pattern_5 = r'<center>\\r\\n<div>\\r\\n<ahref=\".+\"><imgsrc=\".+\"/></a>\\r\\n<br/><br/>\\r\\n<ahref=\".+\"><imgsrc=\".+\"/></a>\\r\\n</div>'
     pattern_6 = r'<divstyle="text-align:center">\\r\\n<ahref=\".+\">.+<imgsrc=\".+\"/></a>\\r\\n\\r\\n<divstyle="padding-top:200px;"><ahref=\".+\"><imgsrc=\".+\"/></a></div>'
 
@@ -41,8 +47,16 @@ def check_for_spam(text_html):
     # return true if any of the patterns match
     match = re.findall(combined_regex, text_html)
     if len(match) > 0:
+        if dev_mode:
+            # helps to know an individual match happened sometimes
+            print("match")
+        
         return True
     
+    if dev_mode:
+        # print unmatched email's html
+        print(text_html)
+
     return False
 
 
@@ -61,12 +75,16 @@ def callback(obj: IMAPClient):
     obj.set_flags(unseen_msg_uids, ())
 
     # Send the spam to the executioner
-    if len(spam_uids) > 0:
+    if len(spam_uids) > 0 and not dev_mode:
         print(f'[{current_time()}] Deleting Spam: {spam_uids}')
         obj.delete_messages(spam_uids)
 
 
 if __name__ == "__main__":
+    if dev_mode:
+        # load environment variables from .env file
+        load_dotenv()
+
     # Env vars needed
     imap_host = os.getenv('IMAP_HOST', '')
     imap_port = os.getenv('IMAP_PORT', '993')
