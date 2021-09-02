@@ -1,6 +1,8 @@
-import os, re
+import os, re, time
+from socket import gaierror
 from datetime import datetime
 from mailsuite.imap import IMAPClient
+import imapclient.exceptions
 from dotenv import load_dotenv
 
 # switch dev mode from False to True to:
@@ -36,12 +38,12 @@ def check_for_spam(text_html):
     patterns = [
         r'<metahttp-equiv="Content-Type"content="text\/html;charset=utf-8">\\r\\n(<divstyle="text-align:center;">\\r\\n<tablealign="center">',
         r'<divdir="ltr">\\r\\n<center>\\r\\n<table>)\\r\\n<tr>\\r\\n<td>\\r\\n<ahref=".+">\\r\\n\\t\\t<imgsrc=".+">\\r\\n\\t<\/a>\\r\\n<\/td>\\r\\n<\/tr>\\r\\n<tr>\\r\\n<tdstyle="padding-top:200px;">\\r\\n<ahref=".+">\\r\\n\\t\\t<imgsrc=".+">\\r\\n\\t<\/a>\\r\\n<\/td>',
-        r'<divstyle=\"text-align:center\">\\r\\n<ahref=\".+\"><imgsrc=\".+\"/></a>\\r\\n<divstyle=\"padding-top:200px;\"><ahref=\".+\"><imgsrc=\".+\"/></a></div>',
         r'<html><head>\\r\\n<metahttp-equiv=\"Content-Type\"content=\"text/html;charset=iso-8859-1\">\\r\\n<styletype=\"text/css\"style=\"display:none;\">P{margin-top:0;margin-bottom:0;}</style>\\r\\n</head>\\r\\n<bodydir=\"ltr\">\\r\\n<center>\\r\\n<ahref=\".+\">\\r\\n<imgsrc=\".+\">\\r\\n</a>\\r\\n<divstyle=\"padding-top:200px;\">\\r\\n',
         r'<center>\\r\\n<div>\\r\\n<ahref=\".+\"><imgsrc=\".+\"/></a>\\r\\n<br/><br/>\\r\\n<ahref=\".+\"><imgsrc=\".+\"/></a>\\r\\n</div>',
-        r'<divstyle="text-align:center">\\r\\n<ahref=\".+\">.+<imgsrc=\".+\"/></a>\\r\\n\\r\\n<divstyle="padding-top:200px;"><ahref=\".+\"><imgsrc=\".+\"/></a></div>',
+        r'<divstyle="text-align:center">\\r\\n<ahref=".+"><imgsrc=".+"/></a>\\r\\n<divstyle=\"padding-top:[0-9]+px;\"><ahref=\".+\"><imgsrc=\".+\"/></a></div>',
+        r'<divstyle="text-align:center">\\r\\n<ahref=".+">.+<imgsrc=".+"/></a>\\r\\n\\r\\n<divstyle="padding-top:[0-9]+px;"><ahref=\".+\"><imgsrc=\".+\"/></a></div>',
         r'<!DOCTYPEhtmlPUBLIC\"-//W3C//DTDXHTML1.0Transitional//EN\"\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"><htmlxmlns=\"http://www.w3.org/1999/xhtml\"><head>\\r\\n<metahttp-equiv=\"Content-Type\"content=\"text/html;charset=utf-8\"><body>\\r\\n<center><ahref=\".+\">',
-        r'<divstyle=\"text-align:center\">\\r\\n<ahref=\".+\"><imgsrc=\".+\"/></a>\\r\\n<divstyle=\"padding-top:210px;\"><ahref=\".+\"><imgsrc=\".+\"/></a></div>\\r\\n</div>'
+        r'<pstyle="text-align:center">\\r\\n<ahref=".+"><imgsrc=".+"/></a></p>\\r\\n<divstyle="text-align:center;padding-top:[0-9]+px;"><ahref=".+"><imgsrc=".+"/></a></p>\\r\\n</div>'
     ]
     # combine the patterns to go into 1 regex search
     combined_regex = "(" + ")|(".join(patterns) + ")"
@@ -94,7 +96,26 @@ if __name__ == "__main__":
     password = os.getenv('AUTH_PASSWORD', '')
 
     if imap_host and username and password:
-        print(f'[{current_time()}] Starting IMAP client in idle mode...')
-        IMAPClient(host=imap_host, username=username, password=password, port=int(imap_port), idle_callback=callback)
+        # loop keeps IMAPClient alive even after it dies
+        while True:
+            try:
+                # start IMAP client (blocking)
+                print(f'[{current_time()}] Starting IMAP client in idle mode...')
+                IMAPClient(host=imap_host, username=username, password=password, port=int(imap_port), idle_callback=callback)
+            except imapclient.exceptions.IMAPClientError:
+                # auth failed so don't keep trying again
+                print(f'[{current_time()}] Auth Failed: check username or password... Exiting.')
+                break
+            except gaierror:
+                # host failed to resolve so don't try again
+                # todo? allow retries but further apart so script doesn't totally die just cuz internet went out briefly?
+                print(f'[{current_time()}] Error resolving IMAP_HOST... Exiting.')
+                break
+            except:
+                # if something happens with IMAPclient then... just restart it i guess
+                # todo? add restart counter that notifies me if it fails too often? seems like rare issue tho
+                print(f'[{current_time()}] An Error occurred... restarting IMAPClient')
+                time.sleep(10)
+                continue
     else:
         print(f'[{current_time()}] [ERROR] Environment variables not properly set. Make sure you\'ve set IMAP_HOST, AUTH_USERNAME, and AUTH_PASSWORD variables.')
