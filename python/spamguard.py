@@ -40,7 +40,8 @@ def check_for_spam(text_html):
         r'<html><head>\\r\\n<metahttp-equiv=\"Content-Type\"content=\"text/html;charset=iso-8859-1\">\\r\\n<styletype=\"text/css\"style=\"display:none;\">P{margin-top:0;margin-bottom:0;}</style>\\r\\n</head>\\r\\n<bodydir=\"ltr\">\\r\\n<center>\\r\\n<ahref=\".+\">\\r\\n<imgsrc=\".+\">\\r\\n</a>\\r\\n<divstyle=\"padding-top:200px;\">\\r\\n',
         r'<center>\\r\\n<div>\\r\\n<ahref=\".+\"><imgsrc=\".+\"/></a>\\r\\n<br/><br/>\\r\\n<ahref=\".+\"><imgsrc=\".+\"/></a>\\r\\n</div>',
         r'<divstyle="text-align:center">\\r\\n<ahref=\".+\">.+<imgsrc=\".+\"/></a>\\r\\n\\r\\n<divstyle="padding-top:200px;"><ahref=\".+\"><imgsrc=\".+\"/></a></div>',
-        r'<!DOCTYPEhtmlPUBLIC\"-//W3C//DTDXHTML1.0Transitional//EN\"\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"><htmlxmlns=\"http://www.w3.org/1999/xhtml\"><head>\\r\\n<metahttp-equiv=\"Content-Type\"content=\"text/html;charset=utf-8\"><body>\\r\\n<center><ahref=\".+\">'
+        r'<!DOCTYPEhtmlPUBLIC\"-//W3C//DTDXHTML1.0Transitional//EN\"\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"><htmlxmlns=\"http://www.w3.org/1999/xhtml\"><head>\\r\\n<metahttp-equiv=\"Content-Type\"content=\"text/html;charset=utf-8\"><body>\\r\\n<center><ahref=\".+\">',
+        r'<divstyle=\"text-align:center\">\\r\\n<ahref=\".+\"><imgsrc=\".+\"/></a>\\r\\n<divstyle=\"padding-top:210px;\"><ahref=\".+\"><imgsrc=\".+\"/></a></div>\\r\\n</div>'
     ]
     # combine the patterns to go into 1 regex search
     combined_regex = "(" + ")|(".join(patterns) + ")"
