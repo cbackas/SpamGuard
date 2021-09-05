@@ -41,9 +41,11 @@ def check_for_spam(text_html):
         r'<html><head>\\r\\n<metahttp-equiv=\"Content-Type\"content=\"text/html;charset=iso-8859-1\">\\r\\n<styletype=\"text/css\"style=\"display:none;\">P{margin-top:0;margin-bottom:0;}</style>\\r\\n</head>\\r\\n<bodydir=\"ltr\">\\r\\n<center>\\r\\n<ahref=\".+\">\\r\\n<imgsrc=\".+\">\\r\\n</a>\\r\\n<divstyle=\"padding-top:200px;\">\\r\\n',
         r'<center>\\r\\n<div>\\r\\n<ahref=\".+\"><imgsrc=\".+\"/></a>\\r\\n<br/><br/>\\r\\n<ahref=\".+\"><imgsrc=\".+\"/></a>\\r\\n</div>',
         r'<divstyle="text-align:center">\\r\\n<ahref=".+"><imgsrc=".+"/></a>\\r\\n<divstyle=\"padding-top:[0-9]+px;\"><ahref=\".+\"><imgsrc=\".+\"/></a></div>',
+        r'<divstyle="text-align:center">\\r\\n<ahref=".+"><imgsrc=".+"/></a></div>\\r\\n<divstyle="text-align:center;padding-top:200px;"><ahref=".+"><imgsrc=".+"/></a></p>\\r\\n</div>',
         r'<divstyle="text-align:center">\\r\\n<ahref=".+">.+<imgsrc=".+"/></a>\\r\\n\\r\\n<divstyle="padding-top:[0-9]+px;"><ahref=\".+\"><imgsrc=\".+\"/></a></div>',
         r'<!DOCTYPEhtmlPUBLIC\"-//W3C//DTDXHTML1.0Transitional//EN\"\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"><htmlxmlns=\"http://www.w3.org/1999/xhtml\"><head>\\r\\n<metahttp-equiv=\"Content-Type\"content=\"text/html;charset=utf-8\"><body>\\r\\n<center><ahref=\".+\">',
-        r'<pstyle="text-align:center">\\r\\n<ahref=".+"><imgsrc=".+"/></a></p>\\r\\n<divstyle="text-align:center;padding-top:[0-9]+px;"><ahref=".+"><imgsrc=".+"/></a></p>\\r\\n</div>'
+        r'<pstyle="text-align:center">\\r\\n<ahref=".+"><imgsrc=".+"/></a></p>\\r\\n<divstyle="text-align:center;padding-top:[0-9]+px;"><ahref=".+"><imgsrc=".+"/></a></p>\\r\\n</div>',
+        r'<!doctypehtml><metahttp-equiv="Content-Type"content="text/html;charset=us-ascii"><center><divalign="center">\\r\\n<h1><ahref=".+"style="text-decoration:none;color:#ef680f;ElevenElefont-weight:bold;font-size:1\.2em;"><span>.+</span></a></h1>\\r\\n<center><ahref=".+"><imgsrc=".+"></a></div>'
     ]
     # combine the patterns to go into 1 regex search
     combined_regex = "(" + ")|(".join(patterns) + ")"
